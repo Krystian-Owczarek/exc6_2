@@ -1,5 +1,7 @@
-# ex_03.py
+# ex_02_create_tables.py
+
 import sqlite3
+from sqlite3 import Error
 
 def create_connection(db_file):
    """ create a database connection to the SQLite database
@@ -11,11 +13,37 @@ def create_connection(db_file):
    try:
        conn = sqlite3.connect(db_file)
        return conn
-   except sqlite3.Error as e:
+   except Error as e:
        print(e)
+
    return conn
 
+def execute_sql(conn, sql):
+   """ Execute sql
+   :param conn: Connection object
+   :param sql: a SQL script
+   :return:
+   """
+   try:
+       c = conn.cursor()
+       c.execute(sql)
+   except Error as e:
+       print(e)
+
 def add_project(conn, project):
+   """
+   Create a new project into the projects table
+   :param conn:
+   :param project:
+   :return: project id
+   """
+   sql = '''INSERT INTO projects(nazwa, start_date, end_date)
+             VALUES(?,?,?)'''
+   cur = conn.cursor()
+   cur.execute(sql, project)
+   return cur.lastrowid
+
+def add_project(conn, projekt):
    """
    Create a new project into the projects table
    :param conn:
@@ -68,15 +96,21 @@ if __name__ == "__main__":
       FOREIGN KEY (project_id) REFERENCES projects (id)
    );
    """
-   project = ("Powtórka z angielskiego", "2020-05-11 00:00:00", "2020-05-13 00:00:00")
 
-   conn = create_connection("database.db")
+   db_file = "database.db"
+
+   project = ("Powtorka z angielskiego", "2020-05-11 00:00:00", "2020-05-13 00:00:00")
+   conn = create_connection(db_file)
    pr_id = add_project(conn, project)
+
+   if conn is not None:
+       execute_sql(conn, create_projects_sql)
+       execute_sql(conn, create_tasks_sql)
 
    task = (
        pr_id,
        "Czasowniki regularne",
-       "Zapamiętaj czasowniki ze strony 30",
+       "Zapamietaj czasowniki ze strony 30",
        "started",
        "2020-05-11 12:00:00",
        "2020-05-11 15:00:00"
